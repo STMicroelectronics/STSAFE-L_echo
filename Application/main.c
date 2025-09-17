@@ -184,7 +184,7 @@ int main(void) {
 
         /* Compare message and echoed message */
         if (apps_compare_buffers(message, echoed_message, message_length)) {
-            printf("\n\n \r ## ECHO MESSAGES COMPARE FAIL (%d)", message_length);
+            printf("\n\n \r ## ECHO MESSAGES COMPARE ERROR (%d)", message_length);
             printf("\n\r\t Echoed Message :\n\r");
             apps_print_hex_buffer(echoed_message, message_length);
             while (1)
@@ -193,7 +193,7 @@ int main(void) {
         printf("\n\n \r ## Echoed Message :\n\r");
         apps_print_hex_buffer(echoed_message, message_length);
 
-        printf("\n\r----------------------------------------------------------------------------------------------------------------");
+        printf(PRINT_RESET "\n\r\n\r*#*# STMICROELECTRONICS #*#*\n\r");
 
         /* Wait for 1s */
         apps_delay_ms(1000);
