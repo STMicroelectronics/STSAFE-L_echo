@@ -59,9 +59,14 @@ static cmox_hash_algo_t stse_platform_get_cmox_hash_algo(stse_hash_algorithm_t h
 }
 
 stse_ReturnCode_t stse_platform_hash_compute(stse_hash_algorithm_t hash_algo,
-                                             PLAT_UI8 *pPayload, PLAT_UI32 payload_length,
-                                             PLAT_UI8 *pHash, PLAT_UI32 *hash_length) {
+                                             PLAT_UI8 *pPayload, PLAT_UI16 payload_length,
+                                             PLAT_UI8 *pHash, PLAT_UI16 *hash_length) {
+#if defined(STSE_CONF_HASH_SHA_1) || defined(STSE_CONF_HASH_SHA_224) ||                                      \
+    defined(STSE_CONF_HASH_SHA_256) || defined(STSE_CONF_HASH_SHA_384) || defined(STSE_CONF_HASH_SHA_512) || \
+    defined(STSE_CONF_HASH_SHA_3_256) || defined(STSE_CONF_HASH_SHA_3_284) || defined(STSE_CONF_HASH_SHA_3_512)
+
     cmox_hash_retval_t retval;
+    size_t cmox_hash_length = *hash_length;
 
     retval = cmox_hash_compute(
         stse_platform_get_cmox_hash_algo(hash_algo),
@@ -69,14 +74,19 @@ stse_ReturnCode_t stse_platform_hash_compute(stse_hash_algorithm_t hash_algo,
         payload_length,
         pHash,
         *hash_length,
-        (size_t *)hash_length);
+        &cmox_hash_length);
 
     /*- Verify Hash compute return */
-    if (retval != CMOX_HASH_SUCCESS) {
+    if (retval != CMOX_HASH_SUCCESS || cmox_hash_length != *hash_length) {
         return STSE_PLATFORM_HASH_ERROR;
     }
 
     return STSE_OK;
+#else
+    return STSE_PLATFORM_HASH_ERROR;
+#endif /* STSE_CONF_HASH_SHA_1 || STSE_CONF_HASH_SHA_224 ||\
+          STSE_CONF_HASH_SHA_256 || STSE_CONF_HASH_SHA_384 || STSE_CONF_HASH_SHA_512 ||\
+          STSE_CONF_HASH_SHA_3_256 || STSE_CONF_HASH_SHA_3_284 || STSE_CONF_HASH_SHA_3_512 */
 }
 
 stse_ReturnCode_t stse_platform_hmac_sha256_extract(PLAT_UI8 *pSalt, PLAT_UI16 salt_length,
@@ -84,7 +94,7 @@ stse_ReturnCode_t stse_platform_hmac_sha256_extract(PLAT_UI8 *pSalt, PLAT_UI16 s
                                                     PLAT_UI8 *pPseudorandom_key, PLAT_UI16 pseudorandom_key_expected_length) {
     cmox_mac_retval_t retval;
 
-    PLAT_UI16 pseudorandom_key_length = pseudorandom_key_expected_length;
+    size_t pseudorandom_key_length = pseudorandom_key_expected_length;
 
     retval = cmox_mac_compute(CMOX_HMAC_SHA256_ALGO,
                               pInput_keying_material,
@@ -95,7 +105,7 @@ stse_ReturnCode_t stse_platform_hmac_sha256_extract(PLAT_UI8 *pSalt, PLAT_UI16 s
                               0,
                               pPseudorandom_key,
                               pseudorandom_key_expected_length,
-                              (size_t *)&pseudorandom_key_length);
+                              &pseudorandom_key_length);
 
     /*- Verify MAC compute return */
     if (retval != CMOX_MAC_SUCCESS) {
